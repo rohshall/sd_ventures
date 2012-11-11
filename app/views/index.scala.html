@@ -1,16 +1,28 @@
-@(form: play.api.data.Form[String], deviceTypes: Seq[DeviceType])
+@(deviceTypeForm: Form[String], deviceTypes: Seq[DeviceType],
+  deviceForm: Form[Long], devices: Seq[Device])
 
 @main("Welcome to SD Ventures") {
       
-  Device Types:
-  <ul id="Device Types">
+  Available Device Types:<br />
+  <ul>
     @deviceTypes.map { deviceType =>
-      <li>@deviceType.dev_type</li>
+      <li>@deviceType.dev_type with id @deviceType.id</li>
       }
   </ul>
+  Add a new Device Type:<br />
   @helper.form(action = routes.Application.addDeviceType) {
-    @helper.inputText(form("dev_type"))
+    @helper.inputText(deviceTypeForm("dev_type"))
     <input type="submit" />
   }
-
+  Available Devices<br />
+  <ul>
+    @devices.map { device =>
+      <li>Device @device.id of type @device.device_type_id registered on @device.registered_at</li>
+      }
+  </ul>
+  Add a new Device<br />
+  @helper.form(action = routes.Application.addDevice) {
+    @helper.inputText(deviceForm("device_type_id"))
+    <input type="submit" />
+  }
 }

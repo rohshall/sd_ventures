@@ -4,7 +4,9 @@ import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import com.codahale.jerkson.Json
+import play.api.data.format.Formats._
+
+import java.util.Date
 
 import anorm.NotAssigned
  
@@ -17,9 +19,15 @@ object Application extends Controller {
     single("dev_type" -> nonEmptyText)
   )
  
+  val deviceForm = Form(
+    single("device_type_id" -> of[Long])
+  )
+ 
   def index = Action {
     val deviceTypes = DeviceType.findAll()
-    Ok(views.html.index( deviceTypeForm, deviceTypes ))
+    val devices = Device.findAll()
+    Ok(views.html.index( deviceTypeForm, deviceTypes, 
+      deviceForm, devices ))
   }
  
   def addDeviceType() = Action { implicit request =>
@@ -32,11 +40,16 @@ object Application extends Controller {
       }
     )
   }
-
-  def listDeviceTypes() = Action {
-    val deviceTypes = DeviceType.findAll()
-    val json = Json.generate( deviceTypes )
-    Ok(json).as("application/json")
+  
+  def addDevice() = Action { implicit request =>
+    deviceForm.bindFromRequest.fold(
+      errors => BadRequest,
+      {
+        case (device_type_id) =>
+          Device.create(Device(NotAssigned, device_type_id, new Date))
+          Redirect(routes.Application.index())
+      }
+    )
   }
- 
+
 }

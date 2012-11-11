@@ -10,14 +10,14 @@ CREATE TABLE device_types (
 CREATE TABLE devices (
   id SERIAL PRIMARY KEY,
   device_type_id integer NOT NULL,
-  registered_at date NOT NULL,
+  registered_at timestamp NOT NULL,
   FOREIGN KEY (device_type_id) REFERENCES device_types (id)
 );
 
 CREATE TABLE readings (
   id SERIAL PRIMARY KEY,
   value varchar(256) NOT NULL,
-  created_at date NOT NULL,
+  created_at timestamp NOT NULL,
   device_id integer NOT NULL,
   FOREIGN KEY (device_id) REFERENCES devices (id)
 );
