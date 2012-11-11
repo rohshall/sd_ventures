@@ -1,7 +1,16 @@
-@(message: String)
+@(form: play.api.data.Form[String], deviceTypes: Seq[DeviceType])
 
-@main("Welcome to Play 2.0") {
-    
-    @play20.welcome(message)
-    
+@main("Welcome to SD Ventures") {
+      
+  Device Types:
+  <ul id="Device Types">
+    @deviceTypes.map { deviceType =>
+      <li>@deviceType.dev_type</li>
+      }
+  </ul>
+  @helper.form(action = routes.Application.addDeviceType) {
+    @helper.inputText(form("dev_type"))
+    <input type="submit" />
+  }
+
 }

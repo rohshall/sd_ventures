@@ -44,8 +44,8 @@ object Reading {
  
   def delete(reading: Reading): Unit = {
     DB.withConnection { implicit connection =>
-      SQL("delete from readings where value = {value} and device_id = {device_id}").on(
-        'value -> reading.value, 'device_id -> reading.created_at
+      SQL("delete from readings where id = {id}").on(
+        'id -> reading.id
       ).executeUpdate()
     }
   }

@@ -3,17 +3,20 @@ package models
 import play.api.db._
 import play.api.Play.current
  
+import java.util.Date
+
 import anorm._
 import anorm.SqlParser._
  
-case class Device(id: Pk[Long], title: String)
+case class Device(id: Pk[Long], device_type_id: Long, registered_at: Date)
  
 object Device {
  
   val simple = {
     get[Pk[Long]]("id") ~
-    get[String]("title") map {
-      case id~name => Device(id, name)
+    get[Long]("device_type_id") ~
+    get[Date]("registered_at") map {
+      case id~device_type_id~registered_at => Device(id, device_type_id, registered_at)
     }
   }
  
@@ -25,16 +28,17 @@ object Device {
  
   def create(device: Device): Unit = {
     DB.withConnection { implicit connection =>
-      SQL("insert into devices(title) values ({title})").on(
-        'title -> device.title
+      SQL("insert into devices(device_type_id, registered_at) values ({device_type_id}, {registered_at})").on(
+        'device_type_id -> device.device_type_id,
+        'registered_at -> device.registered_at
       ).executeUpdate()
     }
   }
  
   def delete(device: Device): Unit = {
     DB.withConnection { implicit connection =>
-      SQL("delete from devices where title = {title}").on(
-        'title -> device.title
+      SQL("delete from devices where id = {id}").on(
+        'id -> device.id
       ).executeUpdate()
     }
   }
