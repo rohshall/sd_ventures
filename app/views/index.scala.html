@@ -22,7 +22,7 @@
   </ul>
   Add a new Device<br />
   @helper.form(action = routes.Application.addDevice) {
-    @helper.inputText(deviceForm("device_type_id"))
+    @helper.select(deviceForm("device_type_id"), helper.options( deviceTypes.map( _.id.toString ).toList ))
     <input type="submit" />
   }
 }
