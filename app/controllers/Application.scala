@@ -7,6 +7,7 @@ import play.api.data.Forms._
 import play.api.data.format.Formats._
 
 import java.util.Date
+import java.util.UUID
 
 import anorm.NotAssigned
  
@@ -16,11 +17,17 @@ import models.{DeviceType, Device}
 object Application extends Controller {
  
   val deviceTypeForm = Form(
-    single("dev_type" -> nonEmptyText)
+    tuple(
+      "name" -> nonEmptyText,
+      "version" -> nonEmptyText
+    )
   )
  
   val deviceForm = Form(
-    single("device_type_id" -> of[Long])
+    tuple(
+      "uuid" -> nonEmptyText,
+      "device_type_id" -> of[Long]
+    )
   )
  
   def index = Action {
@@ -34,8 +41,8 @@ object Application extends Controller {
     deviceTypeForm.bindFromRequest.fold(
       errors => BadRequest,
       {
-        case (dev_type) =>
-          DeviceType.create(DeviceType(NotAssigned, dev_type))
+        case (name, version) =>
+          DeviceType.create(DeviceType(NotAssigned, name, version))
           Redirect(routes.Application.index())
       }
     )
@@ -45,8 +52,9 @@ object Application extends Controller {
     deviceForm.bindFromRequest.fold(
       errors => BadRequest,
       {
-        case (device_type_id) =>
-          Device.create(Device(NotAssigned, device_type_id, new Date))
+        case (uuid_str, device_type_id) =>
+          val uuid = UUID.fromString(uuid_str)
+          Device.create(Device(NotAssigned, uuid, device_type_id, new Date, null))
           Redirect(routes.Application.index())
       }
     )

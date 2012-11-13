@@ -1,28 +1,30 @@
-@(deviceTypeForm: Form[String], deviceTypes: Seq[DeviceType],
-  deviceForm: Form[Long], devices: Seq[Device])
+@(deviceTypeForm: Form[(String, String)], deviceTypes: Seq[DeviceType],
+  deviceForm: Form[(String, Long)], devices: Seq[Device])
 
 @main("Welcome to SD Ventures") {
       
   Available Device Types:<br />
   <ul>
     @deviceTypes.map { deviceType =>
-      <li>@deviceType.dev_type with id @deviceType.id</li>
+      <li>@deviceType.name (version: @deviceType.version) with id @deviceType.id</li>
       }
   </ul>
   Add a new Device Type:<br />
   @helper.form(action = routes.Application.addDeviceType) {
-    @helper.inputText(deviceTypeForm("dev_type"))
+    @helper.inputText(deviceTypeForm("name"))
+    @helper.inputText(deviceTypeForm("version"))
     <input type="submit" />
   }
   Available Devices<br />
   <ul>
     @devices.map { device =>
-      <li>Device @device.id of type @device.device_type_id registered on @device.registered_at</li>
+      <li>Device @device.uuid of type @device.device_type_id registered on @device.registered_at</li>
       }
   </ul>
   Add a new Device<br />
   @helper.form(action = routes.Application.addDevice) {
     @helper.select(deviceForm("device_type_id"), helper.options( deviceTypes.map( _.id.toString ).toList ))
+    @helper.inputText(deviceForm("uuid"))
     <input type="submit" />
   }
 }

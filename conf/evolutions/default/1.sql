@@ -4,22 +4,25 @@
 
 CREATE TABLE device_types (
   id SERIAL PRIMARY KEY,
-  dev_type varchar(256) NOT NULL
+  name varchar(256) NOT NULL,
+  version varchar(256) NOT NULL
 );
 
 CREATE TABLE devices (
   id SERIAL PRIMARY KEY,
+  uuid UUID NOT NULL UNIQUE,
   device_type_id integer NOT NULL,
-  registered_at timestamp NOT NULL,
+  manufactured_at timestamp NOT NULL,
+  registered_at timestamp,
   FOREIGN KEY (device_type_id) REFERENCES device_types (id)
 );
 
 CREATE TABLE readings (
   id SERIAL PRIMARY KEY,
-  value varchar(256) NOT NULL,
+  device_uuid UUID NOT NULL,
+  value text NOT NULL,
   created_at timestamp NOT NULL,
-  device_id integer NOT NULL,
-  FOREIGN KEY (device_id) REFERENCES devices (id)
+  FOREIGN KEY (device_uuid) REFERENCES devices (uuid)
 );
 
 # --- !Downs
