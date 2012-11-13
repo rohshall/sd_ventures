@@ -5,13 +5,14 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.format.Formats._
+import play.api.libs.json._
 
 import java.util.Date
 import java.util.UUID
 
 import anorm.NotAssigned
  
-import models.{DeviceType, Device}
+import models._
  
  
 object Application extends Controller {
@@ -28,6 +29,10 @@ object Application extends Controller {
       "uuid" -> nonEmptyText,
       "device_type_id" -> of[Long]
     )
+  )
+
+  val readingForm = Form(
+    single("value" -> nonEmptyText)
   )
  
   def index = Action {
@@ -54,10 +59,59 @@ object Application extends Controller {
       {
         case (uuid_str, device_type_id) =>
           val uuid = UUID.fromString(uuid_str)
-          Device.create(Device(NotAssigned, uuid, device_type_id, new Date, null))
+          Device.create(Device(NotAssigned, uuid, device_type_id, new Date, None))
           Redirect(routes.Application.index())
       }
     )
+  }
+
+  def getDevices() = Action { implicit request => {
+    val devices = Device.findAll()
+    val response = Json.toJson( devices.map { device =>
+      Map("uuid" -> device.uuid.toString, 
+        "device_type_id" -> device.device_type_id.toString,
+        "manufactured_at" -> device.manufactured_at.toString)
+    } )
+    Ok( response )
+  }
+  }
+
+  def addReading( device_uuid: String ) = Action { implicit request => 
+    readingForm.bindFromRequest.fold(
+      errors => BadRequest,
+      {
+        case (value) =>
+          val reading = Reading(NotAssigned, UUID.fromString( device_uuid ), value, new Date)
+          Reading.create( reading )
+          Redirect(routes.Application.index())
+      }
+    )
+  }
+
+//  def addReading( device_uuid: String ) = Action( parse.json ) { implicit request => {
+//    (request.body \ "value").asOpt[String].map { value => {
+//      val reading = Reading(NotAssigned, UUID.fromString( device_uuid ),
+//        value, new Date)
+//      Reading.create( reading )
+//      Ok(Json.toJson(
+//        Map("status" -> "OK", "message" -> "Reading created!")
+//      ))
+//    }
+//    }.getOrElse {
+//      BadRequest("Missing parameter [value]")
+//    }
+//  }
+//  }
+//
+//
+  def getReadings( device_uuid: String ) = Action { implicit request => {
+    val readings = Reading.findAllForDevice( UUID.fromString( device_uuid ) )
+    val response = Json.toJson( readings.map { reading =>
+      Map("value" -> reading.value,
+        "created_at" -> reading.created_at.toString)
+    } )
+    Ok( response )
+  }
   }
 
 }

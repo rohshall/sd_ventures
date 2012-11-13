@@ -9,8 +9,7 @@ import java.util.UUID
 import anorm._
 import anorm.SqlParser._
  
-case class Device(id: Pk[Long], uuid: UUID, device_type_id: Long, 
-  manufactured_at: Date, registered_at: Date)
+case class Device(id: Pk[Long], uuid: UUID, device_type_id: Long, manufactured_at: Date, registered_at: Option[Date])
  
 object Device {
   
@@ -27,7 +26,7 @@ object Device {
     get[UUID]("uuid") ~
     get[Long]("device_type_id") ~
     get[Date]("manufactured_at") ~
-    get[Date]("registered_at") map {
+    get[Option[Date]]("registered_at") map {
       case id ~ uuid ~ device_type_id ~ manufactured_at ~ registered_at => Device(id, uuid, device_type_id, manufactured_at, registered_at)
     }
   }
@@ -40,7 +39,7 @@ object Device {
  
   def create(device: Device): Unit = {
     DB.withConnection { implicit connection =>
-      SQL("insert into devices(uuid, device_type_id, manufactured_at, registered_at) values ({uuid}, {device_type_id}, {manufactured_at}, {registered_at})").on(
+      SQL("insert into devices(uuid, device_type_id, manufactured_at) values ({uuid}, {device_type_id}, {manufactured_at})").on(
         'uuid -> device.uuid,
         'device_type_id -> device.device_type_id,
         'manufactured_at -> device.manufactured_at,

@@ -36,13 +36,14 @@ object Reading {
     }
   }
  
-  def findDeviceReadings(device_uuid: UUID): Seq[Reading] = {
+  def findAllForDevice(device_uuid: UUID): Seq[Reading] = {
     DB.withConnection { implicit connection =>
       SQL("select * from readings where device_uuid = {device_uuid}").on(
         'device_uuid -> device_uuid
       ).as(Reading.simple *)
     }
   }
+  
   def create(reading: Reading): Unit = {
     DB.withConnection { implicit connection =>
       SQL("insert into readings(device_uuid, value, created_at) values ({device_uuid}, {value}, {created_at})").on(
