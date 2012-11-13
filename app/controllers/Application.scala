@@ -30,10 +30,6 @@ object Application extends Controller {
       "device_type_id" -> of[Long]
     )
   )
-
-  val readingForm = Form(
-    single("value" -> nonEmptyText)
-  )
  
   def index = Action {
     val deviceTypes = DeviceType.findAll()
@@ -76,34 +72,22 @@ object Application extends Controller {
   }
   }
 
-  def addReading( device_uuid: String ) = Action { implicit request => 
-    readingForm.bindFromRequest.fold(
-      errors => BadRequest,
-      {
-        case (value) =>
-          val reading = Reading(NotAssigned, UUID.fromString( device_uuid ), value, new Date)
-          Reading.create( reading )
-          Redirect(routes.Application.index())
-      }
-    )
+  def addReading( device_uuid: String ) = Action( parse.json ) { implicit request => {
+    (request.body \ "value").asOpt[String].map { value => {
+      val reading = Reading(NotAssigned, UUID.fromString( device_uuid ),
+        value, new Date)
+      Reading.create( reading )
+      Ok(Json.toJson(
+        Map("status" -> "OK", "message" -> "Reading created!")
+      ))
+    }
+    }.getOrElse {
+      BadRequest("Missing parameter [value]")
+    }
+  }
   }
 
-//  def addReading( device_uuid: String ) = Action( parse.json ) { implicit request => {
-//    (request.body \ "value").asOpt[String].map { value => {
-//      val reading = Reading(NotAssigned, UUID.fromString( device_uuid ),
-//        value, new Date)
-//      Reading.create( reading )
-//      Ok(Json.toJson(
-//        Map("status" -> "OK", "message" -> "Reading created!")
-//      ))
-//    }
-//    }.getOrElse {
-//      BadRequest("Missing parameter [value]")
-//    }
-//  }
-//  }
-//
-//
+
   def getReadings( device_uuid: String ) = Action { implicit request => {
     val readings = Reading.findAllForDevice( UUID.fromString( device_uuid ) )
     val response = Json.toJson( readings.map { reading =>
