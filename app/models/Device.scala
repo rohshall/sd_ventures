@@ -3,56 +3,43 @@ package models
 import play.api.db._
 import play.api.Play.current
  
-import java.util.Date
+import java.sql.Timestamp
 import java.util.UUID
 
-import anorm._
-import anorm.SqlParser._
+import scala.slick.driver.PostgresDriver.simple._
+import scala.slick.session.Session
+
+
+case class Device(id: Option[Int]= None, uuid: UUID, device_type_id: Int, manufactured_at: Timestamp, registered_at: Option[Timestamp])
  
-case class Device(id: Pk[Long], uuid: UUID, device_type_id: Long, manufactured_at: Date, registered_at: Option[Date])
- 
-object Device {
+object Devices extends Table[Device]("devices") {
   
-  implicit def rowToUuid: Column[UUID] = Column.nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-      case d: UUID => Right(d)
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to UUID for column " + qualified))
-    }
-  }
-  
-  val simple = {
-    get[Pk[Long]]("id") ~
-    get[UUID]("uuid") ~
-    get[Long]("device_type_id") ~
-    get[Date]("manufactured_at") ~
-    get[Option[Date]]("registered_at") map {
-      case id ~ uuid ~ device_type_id ~ manufactured_at ~ registered_at => Device(id, uuid, device_type_id, manufactured_at, registered_at)
-    }
-  }
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def uuid = column[UUID]("uuid")
+  def device_type_id = column[Int]("device_type_id")
+  def manufactured_at = column[Timestamp]("manufactured_at")
+  def registered_at = column[Timestamp]("registered_at")
+
+  def * = id.? ~ uuid ~ device_type_id ~ manufactured_at ~ registered_at.? <> (Device, Device.unapply _)
  
+  lazy val database = Database.forDataSource(DB.getDataSource())
+  
   def findAll(): Seq[Device] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from devices").as(Device.simple *)
+    database withSession { implicit session : Session =>
+      Query(Devices).list
     }
   }
  
   def create(device: Device): Unit = {
-    DB.withConnection { implicit connection =>
-      SQL("insert into devices(uuid, device_type_id, manufactured_at) values ({uuid}, {device_type_id}, {manufactured_at})").on(
-        'uuid -> device.uuid,
-        'device_type_id -> device.device_type_id,
-        'manufactured_at -> device.manufactured_at,
-        'registered_at -> device.registered_at
-      ).executeUpdate()
+    database withSession { implicit session : Session =>
+      Devices.insert(device)
     }
   }
  
   def delete(device: Device): Unit = {
-    DB.withConnection { implicit connection =>
-      SQL("delete from devices where id = {id}").on(
-        'id -> device.id
-      ).executeUpdate()
+    database withSession { implicit session : Session =>
+      val d = Devices.filter(_.id == device.id)
+      d.delete
     }
   }
 }

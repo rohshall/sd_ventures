@@ -3,40 +3,37 @@ package models
 import play.api.db._
 import play.api.Play.current
  
-import anorm._
-import anorm.SqlParser._
+import scala.slick.driver.PostgresDriver.simple._
+import scala.slick.session.Session
  
-case class DeviceType(id: Pk[Long], name: String, version: String)
+case class DeviceType(id: Option[Int] = None, name: String, version: String)
  
-object DeviceType {
+object DeviceTypes extends Table[DeviceType]("device_types") {
  
-  val simple = {
-    get[Pk[Long]]("id") ~
-    get[String]("name") ~
-    get[String]("version") map {
-      case id ~ name ~ version => DeviceType(id, name, version)
-    }
-  }
+  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def name = column[String]("name")
+  def version = column[String]("version")
+
+  def * = id.? ~ name ~ version <> (DeviceType, DeviceType.unapply _)
  
+  lazy val database = Database.forDataSource(DB.getDataSource())
+  
   def findAll(): Seq[DeviceType] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from device_types").as(DeviceType.simple *)
+    database withSession { implicit session : Session =>
+      Query(DeviceTypes).list
     }
   }
  
   def create(device_type: DeviceType): Unit = {
-    DB.withConnection { implicit connection =>
-      SQL("insert into device_types(name, version) values ({name}, {version})").on(
-        'name -> device_type.name, 'version -> device_type.version
-      ).executeUpdate()
+    database withSession { implicit session : Session =>
+      DeviceTypes.insert(device_type)
     }
   }
  
   def delete(device_type: DeviceType): Unit = {
-    DB.withConnection { implicit connection =>
-      SQL("delete from device_types where id = {id}").on(
-        'id -> device_type.id
-      ).executeUpdate()
+    database withSession { implicit session : Session =>
+      val dt = DeviceTypes.filter(_.id == device_type.id)
+      dt.delete
     }
   }
 }
