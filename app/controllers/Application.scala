@@ -42,7 +42,8 @@ object Application extends Controller {
       errors => BadRequest,
       {
         case (name, version) =>
-          DeviceTypes.create(DeviceType(None, name, version))
+          val device_type = DeviceType(None, name, version)
+          DeviceTypes.create( device_type )
           Redirect(routes.Application.index())
       }
     )
@@ -56,7 +57,8 @@ object Application extends Controller {
           val uuid = UUID.fromString(uuid_str)
           val date = new Date
           val timestamp = new Timestamp(date.getTime)
-          Devices.create(Device(None, uuid, device_type_id, timestamp, None))
+          val device = Device(None, uuid, device_type_id, timestamp, None)
+          Devices.create( device )
           Redirect(routes.Application.index())
       }
     )

@@ -1,5 +1,5 @@
 package models
- 
+
 import play.api.db._
 import play.api.Play.current
  
@@ -11,10 +11,13 @@ case class DeviceType(id: Option[Int] = None, name: String, version: String)
 object DeviceTypes extends Table[DeviceType]("device_types") {
  
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def name = column[String]("name")
+  def name = column[String]("name", O.NotNull)
   def version = column[String]("version")
 
   def * = id.? ~ name ~ version <> (DeviceType, DeviceType.unapply _)
+  def forInsert = name ~ version <> (
+    { t => DeviceType(None, t._1, t._2) }, 
+    { (dt: DeviceType) => Some((dt.name, dt.version)) })
  
   lazy val database = Database.forDataSource(DB.getDataSource())
   
@@ -26,14 +29,15 @@ object DeviceTypes extends Table[DeviceType]("device_types") {
  
   def create(device_type: DeviceType): Unit = {
     database withSession { implicit session : Session =>
-      DeviceTypes.insert(device_type)
+      DeviceTypes.forInsert.insert(device_type)
     }
   }
  
   def delete(device_type: DeviceType): Unit = {
     database withSession { implicit session : Session =>
-      val dt = DeviceTypes.filter(_.id == device_type.id)
-      dt.delete
+      val dt_query = for(dt <- DeviceTypes if dt.id == device_type.id.get) yield dt
+        //Query(DeviceTypes).filter(_.id == device_type.id.get)
+      dt_query.delete
     }
   }
 }
