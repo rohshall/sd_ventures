@@ -41,7 +41,7 @@ object Devices extends Table[Device]("devices") {
  
   def delete(device: Device): Unit = {
     database withSession { implicit session : Session =>
-      val d = Query(Devices).filter(_.id == device.id.get)
+      val d = Query(Devices).filter(_.id === device.id.get)
       d.delete
     }
   }

@@ -35,8 +35,7 @@ object DeviceTypes extends Table[DeviceType]("device_types") {
  
   def delete(device_type: DeviceType): Unit = {
     database withSession { implicit session : Session =>
-      val dt_query = for(dt <- DeviceTypes if dt.id == device_type.id.get) yield dt
-        //Query(DeviceTypes).filter(_.id == device_type.id.get)
+      val dt_query = Query(DeviceTypes).filter(_.id === device_type.id.get)
       dt_query.delete
     }
   }

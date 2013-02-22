@@ -33,7 +33,7 @@ object Readings extends Table[Reading]("readings"){
  
   def findAllForDevice(device_uuid: UUID): Seq[Reading] = {
     database withSession { implicit session : Session =>
-      Query(Readings).filter(_.device_uuid == device_uuid).list
+      Query(Readings).filter(_.device_uuid === device_uuid).list
     }
   }
   
@@ -45,7 +45,7 @@ object Readings extends Table[Reading]("readings"){
  
   def delete(reading: Reading): Unit = {
     database withSession { implicit session : Session =>
-      val r = Query(Readings).filter(_.id == reading.id.get)
+      val r = Query(Readings).filter(_.id === reading.id.get)
       r.delete
     }
   }
