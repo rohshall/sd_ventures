@@ -17,32 +17,39 @@ import models._
 object Application extends Controller {
  
   val deviceTypeForm = Form(
-    tuple(
+    mapping(
       "name" -> nonEmptyText,
       "version" -> nonEmptyText
     )
+    ((name, version) => DeviceType(None, name, version))
+    ((dt: DeviceType) => Some(dt.name, dt.version))
   )
  
   val deviceForm = Form(
-    tuple(
+    mapping(
       "uuid" -> nonEmptyText,
-      "device_type_id" -> of[Int]
+      "device_type_id" -> number
     )
+    ((uuid_str, device_type_id) => {
+        val uuid = UUID.fromString(uuid_str)
+        val date = new Date
+        val timestamp = new Timestamp(date.getTime)
+        Device(None, uuid, device_type_id, timestamp, None)
+    })
+    ((d: Device) => Some(d.uuid.toString, d.device_type_id))
   )
  
   def index = Action {
     val deviceTypes = DeviceTypes.findAll()
     val devices = Devices.findAll()
-    Ok(views.html.index( deviceTypeForm, deviceTypes, 
-      deviceForm, devices ))
+    Ok(views.html.index( deviceTypeForm, deviceTypes, deviceForm, devices ))
   }
  
   def addDeviceType() = Action { implicit request =>
     deviceTypeForm.bindFromRequest.fold(
       errors => BadRequest,
       {
-        case (name, version) =>
-          val device_type = DeviceType(None, name, version)
+        case device_type =>
           DeviceTypes.create( device_type )
           Redirect(routes.Application.index())
       }
@@ -53,11 +60,7 @@ object Application extends Controller {
     deviceForm.bindFromRequest.fold(
       errors => BadRequest,
       {
-        case (uuid_str, device_type_id) =>
-          val uuid = UUID.fromString(uuid_str)
-          val date = new Date
-          val timestamp = new Timestamp(date.getTime)
-          val device = Device(None, uuid, device_type_id, timestamp, None)
+        case device =>
           Devices.create( device )
           Redirect(routes.Application.index())
       }

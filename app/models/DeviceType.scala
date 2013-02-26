@@ -6,7 +6,7 @@ import play.api.Play.current
 import scala.slick.driver.PostgresDriver.simple._
 import scala.slick.session.Session
  
-case class DeviceType(id: Option[Int] = None, name: String, version: String)
+case class DeviceType(id: Option[Int], name: String, version: String)
  
 object DeviceTypes extends Table[DeviceType]("device_types") {
  
@@ -35,7 +35,7 @@ object DeviceTypes extends Table[DeviceType]("device_types") {
  
   def delete(device_type: DeviceType): Unit = {
     database withSession { implicit session : Session =>
-      val dt_query = Query(DeviceTypes).filter(_.id === device_type.id.get)
+      val dt_query = Query(DeviceTypes).filter(_.id === device_type.id)
       dt_query.delete
     }
   }
