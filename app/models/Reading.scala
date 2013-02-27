@@ -22,6 +22,9 @@ object Readings extends Table[Reading]("readings"){
     { t => Reading(None, t._1, t._2, t._3) }, 
     { (r: Reading) => Some((r.device_mac_addr, r.value, r.created_at)) })
  
+  // A reified foreign key relation that can be navigated to create a join
+  def device = foreignKey("device_fk", device_mac_addr, Devices)(_.mac_addr)
+ 
   lazy val database = Database.forDataSource(DB.getDataSource())
   
   def findAll(): Seq[Reading] = {
