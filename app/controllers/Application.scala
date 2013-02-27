@@ -46,10 +46,9 @@ object Application extends Controller {
   def addDeviceType() = Action { implicit request =>
     deviceTypeForm.bindFromRequest.fold(
       errors => BadRequest,
-      {
-        case device_type =>
-          DeviceTypes.create( device_type )
-          Redirect(routes.Application.index())
+      device_type => {
+        DeviceTypes.create( device_type )
+        Redirect(routes.Application.index())
       }
     )
   }
@@ -57,50 +56,46 @@ object Application extends Controller {
   def addDevice() = Action { implicit request =>
     deviceForm.bindFromRequest.fold(
       errors => BadRequest,
-      {
-        case device =>
-          Devices.create( device )
-          Redirect(routes.Application.index())
+      device => {
+        Devices.create( device )
+        Redirect(routes.Application.index())
       }
     )
   }
 
   def getDevices() = Action { implicit request => {
-    val devices = Devices.findAll()
-    val response = Json.toJson( devices.map { device =>
-      Map("mac_addr" -> device.mac_addr, 
-        "device_type_id" -> device.device_type_id.toString,
-        "manufactured_at" -> device.manufactured_at.toString)
-    } )
-    Ok( response )
-  }
+      val devices = Devices.findAll()
+      val response = Json.arr( devices.map { device =>
+        Json.obj("mac_addr" -> device.mac_addr, 
+          "device_type_id" -> device.device_type_id.toString,
+          "manufactured_at" -> device.manufactured_at.toString)
+      })
+      Ok( response )
+    }
   }
 
   def addReading( device_mac_addr: String ) = Action( parse.json ) { implicit request => {
-    (request.body \ "value").asOpt[String].map { value => {
-      val date = new Date
-      val timestamp = new Timestamp(date.getTime)
-      val reading = Reading(None, device_mac_addr, value, timestamp)
-      Readings.create( reading )
-      Ok(Json.toJson(
-        Map("status" -> "OK", "message" -> "Reading created!")
-      ))
+      (request.body \ "value").validate[String].fold(
+        errors => BadRequest("Missing parameter [value]"),
+        value => {
+          val date = new Date
+          val timestamp = new Timestamp(date.getTime)
+          val reading = Reading(None, device_mac_addr, value, timestamp)
+          Readings.create( reading )
+          Ok(Json.obj("status" -> "OK"))
+        }
+      )
     }
-    }.getOrElse {
-      BadRequest("Missing parameter [value]")
-    }
-  }
   }
 
 
   def getReadings( device_mac_addr: String ) = Action { implicit request => {
-    val readings = Readings.findAllForDevice( device_mac_addr )
-    val response = Json.toJson( readings.map { reading =>
-      Map("value" -> reading.value,
-        "created_at" -> reading.created_at.toString)
-    } )
-    Ok( response )
-  }
+      val readings = Readings.findAllForDevice( device_mac_addr )
+      val response = Json.arr( readings.map { reading =>
+        Json.obj("value" -> reading.value, "created_at" -> reading.created_at.toString)
+      } )
+      Ok( response )
+    }
   }
 
 }
