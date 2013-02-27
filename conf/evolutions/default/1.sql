@@ -10,7 +10,7 @@ CREATE TABLE device_types (
 
 CREATE TABLE devices (
   id SERIAL PRIMARY KEY,
-  uuid UUID NOT NULL UNIQUE,
+  mac_addr char(12) NOT NULL UNIQUE,
   device_type_id integer NOT NULL,
   manufactured_at timestamp NOT NULL,
   registered_at timestamp,
@@ -19,10 +19,10 @@ CREATE TABLE devices (
 
 CREATE TABLE readings (
   id SERIAL PRIMARY KEY,
-  device_uuid UUID NOT NULL,
+  device_mac_addr char(12) NOT NULL,
   value text NOT NULL,
   created_at timestamp NOT NULL,
-  FOREIGN KEY (device_uuid) REFERENCES devices (uuid)
+  FOREIGN KEY (device_mac_addr) REFERENCES devices (mac_addr)
 );
 
 # --- !Downs

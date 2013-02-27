@@ -9,7 +9,6 @@ import play.api.libs.json._
 
 import java.util.Date
 import java.sql.Timestamp
-import java.util.UUID
 
 import models._
  
@@ -27,16 +26,15 @@ object Application extends Controller {
  
   val deviceForm = Form(
     mapping(
-      "uuid" -> nonEmptyText,
+      "mac_addr" -> nonEmptyText,
       "device_type_id" -> number
     )
-    ((uuid_str, device_type_id) => {
-        val uuid = UUID.fromString(uuid_str)
+    ((mac_addr, device_type_id) => {
         val date = new Date
         val timestamp = new Timestamp(date.getTime)
-        Device(None, uuid, device_type_id, timestamp, None)
+        Device(None, mac_addr, device_type_id, timestamp, None)
     })
-    ((d: Device) => Some(d.uuid.toString, d.device_type_id))
+    ((d: Device) => Some(d.mac_addr, d.device_type_id))
   )
  
   def index = Action {
@@ -70,7 +68,7 @@ object Application extends Controller {
   def getDevices() = Action { implicit request => {
     val devices = Devices.findAll()
     val response = Json.toJson( devices.map { device =>
-      Map("uuid" -> device.uuid.toString, 
+      Map("mac_addr" -> device.mac_addr, 
         "device_type_id" -> device.device_type_id.toString,
         "manufactured_at" -> device.manufactured_at.toString)
     } )
@@ -78,11 +76,11 @@ object Application extends Controller {
   }
   }
 
-  def addReading( device_uuid: String ) = Action( parse.json ) { implicit request => {
+  def addReading( device_mac_addr: String ) = Action( parse.json ) { implicit request => {
     (request.body \ "value").asOpt[String].map { value => {
       val date = new Date
       val timestamp = new Timestamp(date.getTime)
-      val reading = Reading(None, UUID.fromString( device_uuid ), value, timestamp)
+      val reading = Reading(None, device_mac_addr, value, timestamp)
       Readings.create( reading )
       Ok(Json.toJson(
         Map("status" -> "OK", "message" -> "Reading created!")
@@ -95,8 +93,8 @@ object Application extends Controller {
   }
 
 
-  def getReadings( device_uuid: String ) = Action { implicit request => {
-    val readings = Readings.findAllForDevice( UUID.fromString( device_uuid ) )
+  def getReadings( device_mac_addr: String ) = Action { implicit request => {
+    val readings = Readings.findAllForDevice( device_mac_addr )
     val response = Json.toJson( readings.map { reading =>
       Map("value" -> reading.value,
         "created_at" -> reading.created_at.toString)

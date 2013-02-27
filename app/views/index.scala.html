@@ -18,13 +18,13 @@
   Available Devices<br />
   <ul>
     @devices.map { device =>
-      <li>Device @device.uuid of type @device.device_type_id registered on @device.registered_at</li>
+      <li>Device @device.mac_addr of type @device.device_type_id registered on @device.registered_at</li>
       }
   </ul>
   Add a new Device<br />
   @helper.form(action = routes.Application.addDevice) {
     @helper.select(deviceForm("device_type_id"), helper.options( deviceTypes.map( _.id.get.toString ).toList ))
-    @helper.inputText(deviceForm("uuid"))
+    @helper.inputText(deviceForm("mac_addr"))
     <input type="submit" />
   }
 }
