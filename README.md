@@ -1,4 +1,4 @@
-This is your new Play 2.0 application
-=====================================
+sd_ventures
+===========
 
-This file will be packaged with your application, when using `play dist`.
+play framework based app with slick ORM for device readings
