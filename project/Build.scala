@@ -8,9 +8,8 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0-SNAPSHOT"
 
     val appDependencies = Seq(
-      jdbc,
       "postgresql" % "postgresql" % "9.1-901.jdbc4",
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0"
+      "com.typesafe.play" %% "play-slick" % "0.3.2"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(

@@ -5,8 +5,7 @@ import play.api.Play.current
  
 import java.sql.Timestamp
 
-import scala.slick.driver.PostgresDriver.simple._
-import scala.slick.session.Session
+import play.api.db.slick.Config.driver.simple._
 
 
 case class Device(id: Option[Int], mac_addr: String, device_type_id: Int, manufactured_at: Timestamp, registered_at: Option[Timestamp])

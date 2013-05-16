@@ -3,8 +3,7 @@ package models
 import play.api.db._
 import play.api.Play.current
  
-import scala.slick.driver.PostgresDriver.simple._
-import scala.slick.session.Session
+import play.api.db.slick.Config.driver.simple._
  
 case class DeviceType(id: Option[Int], name: String, version: String)
  
